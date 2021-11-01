@@ -1,6 +1,6 @@
 /* Objeto para crear animaciones de tiempo creado por Josep Antoni Bover.
  *  Creado el 25/08/2016
- *  Ultima modificación el 26/01/2019
+ *  Ultima modificación el 01/11/2021
  * */
 
 
