@@ -17,9 +17,10 @@
             "Invertir"          : true,                            // Invertir la animación al terminar los pasos
             "Repetir"           : 2,                               // Repetir 2 veces
             "FuncionActualizar" : function(Valores) { },           // Función que se llama cada vez que se actualizan los valores
-            "FuncionIniciado"   : function() { }                   // Función que se llama al iniciar la animación
-            "FuncionTerminado"  : function() { }                   // Función que se llama al terminar la animación
-            "Const"             : { ... }                          // Array de variables constantes que podrás utilizar desde Valores.Const
+            "FuncionIniciado"   : function(Valores) { },           // Función que se llama al iniciar la animación
+            "FuncionTerminado"  : function(Valores) { },           // Función que se llama al terminar la animación
+            "Const"             : { ... },                         // Array de variables constantes que podrás utilizar desde Valores.Const
+            "Debug"             : false                            // Mostrar mensajes de depuración por la consola. Por defecto es false
         });*/
  
  // Añadido 26/08/2017 : 
@@ -113,7 +114,8 @@ var ObjetoAnimacion_Animacion = function(ArrayPasos, Opciones, Padre, nTransicio
     this._Avance             = 0;                               // Avance puede ser de 0 a 1
     this._Invertido          = nTransicion;                     // Invertir animación (para las transiciones empieza en true)
     this._Terminado          = false;                           // Animación terminada
-    this._Opciones           = { Repetir : 0, Invertir : false, FuncionActualizar : function(Valores) { }, FuncionIniciado : function() { }, FuncionTerminado : function() { } };
+    this.Debug               = false;                           // Mostrar mensajes de depuracion por la consola
+    this._Opciones           = { Repetir : 0, Invertir : false, FuncionActualizar : function(Valores) { }, FuncionIniciado : function(Valores) { }, FuncionTerminado : function(Valores) { }, Debug : false };
     if (typeof (Opciones) !== 'undefined') { 
         if (typeof Opciones.Repetir !== "undefined")           { this._Opciones.Repetir = Opciones.Repetir;                     }
         if (typeof Opciones.Invertir !== "undefined")          { this._Opciones.Invertir = Opciones.Invertir;                   }
@@ -125,6 +127,7 @@ var ObjetoAnimacion_Animacion = function(ArrayPasos, Opciones, Padre, nTransicio
             this._Opciones.FuncionTerminado = Opciones.FuncionTerminado;  
         }
         if (typeof Opciones.Const !== "undefined")             { this.Const = Opciones.Const;                                   }
+        if (typeof Opciones.Debug !== "undefined")             { this.Debug = Opciones.Debug;                                   }
     }
     // Completo los datos de cada paso
 /*    for (var Paso in this.Pasos) {
@@ -170,6 +173,7 @@ var ObjetoAnimacion_Animacion = function(ArrayPasos, Opciones, Padre, nTransicio
     // this._Opciones.FuncionActualizar(this);
     
     this.Iniciar = function() {
+        if (this.Debug !== false) console.log("ObjetoAnimacion.Iniciar");
         var AniCreada = false;
         // Agrego la animacion al array de animaciones del padre (si no existe)
         for (var i = 0; i < this._Padre.Animaciones.length; i++) {
@@ -200,7 +204,7 @@ var ObjetoAnimacion_Animacion = function(ArrayPasos, Opciones, Padre, nTransicio
                 }
             }
             
-            this._Opciones.FuncionIniciado();
+            this._Opciones.FuncionIniciado(this);
         }
         this._Terminado = false;
     };
@@ -267,13 +271,15 @@ var ObjetoAnimacion_Animacion = function(ArrayPasos, Opciones, Padre, nTransicio
 
     // Función que termina la animación y la deja tal y como está
     this.Cancelar = function() {
-        this._Opciones.FuncionIniciado();
-        this._Opciones.FuncionTerminado();
+        this._Opciones.FuncionIniciado(this);
+        this._Opciones.FuncionTerminado(this);
         this._Terminado = true;                       
+        if (this.Debug !== false) console.log("ObjetoAnimacion.Cancelar");
     };
 
     // Función que termina la animación y deja los valores en su estado final
     this.Terminar = function() {
+        if (this.Debug !== false) console.log("ObjetoAnimacion.Terminar");
         // Busco las variables que sean una instancia de ObjetoAnimacion_Rand y pongo el valor máximo para tener algun valor de referencia en las futuras funciones Iniciado y Terminado
         for (var i = 0; i < this.Pasos.length; i++) {
             this.Pasos.forEach(function(Valor, Indice, Array) {
@@ -283,11 +289,11 @@ var ObjetoAnimacion_Animacion = function(ArrayPasos, Opciones, Padre, nTransicio
             });
         }        
         
-        this._Opciones.FuncionIniciado();
+        this._Opciones.FuncionIniciado(this);
         for (var Indice in this.Pasos[this.Pasos.length - 1].Paso) {                    
             this[Indice] = this.Pasos[this.Pasos.length - 1].Paso[Indice];
         }                        
-        this._Opciones.FuncionTerminado();
+        this._Opciones.FuncionTerminado(this);
         this._Terminado = true;            
         this._Opciones.FuncionActualizar(this);
     };
@@ -343,7 +349,7 @@ var ObjetoAnimacion_Animacion = function(ArrayPasos, Opciones, Padre, nTransicio
                     if (this._Opciones.Invertir === false) {
                         // no hay mas repeticiones
                         if (this._Opciones.Repetir <= 0) {
-                            this._Opciones.FuncionTerminado();
+                            this._Opciones.FuncionTerminado(this);
                             this._Terminado = true;
 //                            console.log("--------------");
                         }
@@ -415,7 +421,7 @@ var ObjetoAnimacion_Animacion = function(ArrayPasos, Opciones, Padre, nTransicio
                     }
                     // No hay mas repeticiones
                     if (this._Opciones.Repetir === 0) {
-                        this._Opciones.FuncionTerminado();
+                        this._Opciones.FuncionTerminado(this);
                         this._Terminado = true;
                     }
                     else {
